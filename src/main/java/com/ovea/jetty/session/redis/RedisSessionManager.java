@@ -18,8 +18,10 @@ package com.ovea.jetty.session.redis;
 import com.ovea.jetty.session.Serializer;
 import com.ovea.jetty.session.SessionManagerSkeleton;
 import com.ovea.jetty.session.serializer.XStreamSerializer;
+
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.TransactionBlock;
@@ -27,6 +29,7 @@ import redis.clients.jedis.exceptions.JedisException;
 
 import javax.naming.InitialContext;
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.*;
 
 import static java.lang.Integer.parseInt;
@@ -255,7 +258,8 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
             super.setMaxInactiveInterval(parseInt(redisData.get("maxIdle")));
             setCookieSetTime(parseLong(redisData.get("cookieSet")));
             for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-                super.doPutOrRemove(entry.getKey(), entry.getValue());
+//                super.doPutOrRemove(entry.getKey(), entry.getValue());
+                this.doPutOrRemove(entry.getKey(), entry.getValue());
             }
             super.access(parseLong(redisData.get("lastAccessed")));
         }
@@ -279,8 +283,8 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
 
         public final Map<String, Object> getSessionAttributes() {
             Map<String, Object> attrs = new LinkedHashMap<String, Object>();
-            for (String key : super.getNames()) {
-                attrs.put(key, super.doGet(key));
+            for (String key : this.getNames()) {
+                attrs.put(key, this.doGet(key));
             }
             return attrs;
         }
@@ -339,5 +343,53 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
                 firstAccess.set(false);
             return first;
         }
+
+		@Override
+		public Map<String, Object> getAttributeMap() {
+			// TODO 自动生成的方法存根
+			return null;
+		}
+
+		@Override
+		public int getAttributes() {
+			// TODO 自动生成的方法存根
+			return 0;
+		}
+
+		@Override
+		public Set<String> getNames() {
+			// TODO 自动生成的方法存根
+			return null;
+		}
+
+		@Override
+		public void clearAttributes() {
+			// TODO 自动生成的方法存根
+			
+		}
+
+		@Override
+		public Object doPutOrRemove(String name, Object value) {
+			// TODO 自动生成的方法存根
+			return null;
+		}
+
+		@Override
+		public Object doGet(String name) {
+			// TODO 自动生成的方法存根
+			return null;
+		}
+
+		@Override
+		public Enumeration<String> doGetAttributeNames() {
+//			 List<String> names=_attributes==null?Collections.EMPTY_LIST:new ArrayList<String>(_attributes.keySet());
+//			 return Collections.enumeration("");
+			return null;
+		}
     }
+
+	@Override
+	protected void shutdownSessions() throws Exception {
+		// TODO 自动生成的方法存根
+	}
 }

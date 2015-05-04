@@ -77,7 +77,7 @@ public abstract class SessionManagerSkeleton<T extends SessionManagerSkeleton.Se
     }
 
     @Override
-    public final void removeSession(AbstractSession sess, boolean invalidate) {
+    public final boolean removeSession(AbstractSession sess, boolean invalidate) {
         @SuppressWarnings({"unchecked"}) T session = (T) sess;
         String clusterId = getClusterId(session);
         boolean removed = removeSession(clusterId);
@@ -96,6 +96,8 @@ public abstract class SessionManagerSkeleton<T extends SessionManagerSkeleton.Se
                 session.willPassivate();
             }
         }
+        return removed;
+        
     }
 
     @Override
@@ -127,13 +129,13 @@ public abstract class SessionManagerSkeleton<T extends SessionManagerSkeleton.Se
     }
 
     @SuppressWarnings({"deprecation"})
-    @Override
+//    @Override
     @Deprecated
     public final Map getSessionMap() {
         return Collections.unmodifiableMap(sessions);
     }
 
-    @Override
+//    @Override
     protected final void invalidateSessions() {
         //Do nothing - we don't want to remove and
         //invalidate all the sessions because this

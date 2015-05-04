@@ -21,20 +21,35 @@
         <url>http://github.com/Ovea/${project.name}</url>
     </scm>
 
-    <dependencies>
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.0.0</version>
-            <scope>provided</scope>
-        </dependency>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<slf4j.version>1.7.6</slf4j.version>
+		<logback.version>1.1.1</logback.version>
+		<junit.version>4.11</junit.version>
+	</properties>
 
-        <dependency>
-            <groupId>org.eclipse.jetty.aggregate</groupId>
-            <artifactId>jetty-all</artifactId>
-            <version>8.1.2.v20120308</version>
-            <scope>provided</scope>
-        </dependency>
+    <dependencies>
+    
+		<dependency>
+		  <groupId>redis.clients</groupId>
+		  <artifactId>jedis</artifactId>
+		  <version>2.7.2</version>
+		  <scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+		  <groupId>org.eclipse.jetty</groupId>
+		  <artifactId>jetty-server</artifactId>
+		  <version>9.3.0.M2</version>
+		  <scope>provided</scope>
+		</dependency>
+
+<!--         <dependency> -->
+<!--             <groupId>org.eclipse.jetty.aggregate</groupId> -->
+<!--             <artifactId>jetty-all</artifactId> -->
+<!--             <version>8.1.2.v20120308</version> -->
+<!--             <scope>provided</scope> -->
+<!--         </dependency> -->
 
         <!-- jetty classes + runner + jsp stack -->
         <dependency>
@@ -84,7 +99,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.9</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -98,13 +113,13 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.6.1</version>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
