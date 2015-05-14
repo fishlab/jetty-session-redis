@@ -23,6 +23,7 @@ import org.eclipse.jetty.util.log.Logger;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 import redis.clients.jedis.TransactionBlock;
 import redis.clients.jedis.exceptions.JedisException;
 
@@ -33,7 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * @author Mathieu Carbou (mathieu.carbou@gmail.com)
+ * @author Mathieu Carbou (mathieu.carbou@gmail.com) ,wu
  */
 public final class RedisSessionIdManager extends SessionIdManagerSkeleton {
 
@@ -107,6 +108,12 @@ public final class RedisSessionIdManager extends SessionIdManagerSkeleton {
         List<Object> status = jedisExecutor.execute(new JedisCallback<List<Object>>() {
             @Override
             public List<Object> execute(Jedis jedis) {
+            	Transaction tx=jedis.multi();
+            	for (String clusterId : clusterIds) {
+            		tx.exists(REDIS_SESSION_KEY + clusterId);
+            	}
+            	return tx.exec();
+            	/*
                 return jedis.multi(new TransactionBlock() {
                     @Override
                     public void execute() throws JedisException {
@@ -114,7 +121,8 @@ public final class RedisSessionIdManager extends SessionIdManagerSkeleton {
                             exists(REDIS_SESSION_KEY + clusterId);
                         }
                     }
-                });
+                });*/
+                
             }
         });
         for (int i = 0; i < status.size(); i++)
@@ -128,6 +136,7 @@ public final class RedisSessionIdManager extends SessionIdManagerSkeleton {
 	@Override
 	public void renewSessionId(String oldClusterId, String oldNodeId,
 			HttpServletRequest request) {
+//		this.newSessionId(seedTerm)
 		// TODO 自动生成的方法存根
 		
 	}
