@@ -24,8 +24,9 @@ import org.eclipse.jetty.util.log.Logger;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.TransactionBlock;
-import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.Transaction;
+//import redis.clients.jedis.TransactionBlock;
+//import redis.clients.jedis.exceptions.JedisException;
 
 import javax.naming.InitialContext;
 import javax.servlet.http.HttpServletRequest;
@@ -36,13 +37,13 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
 
 /**
- * @author Mathieu Carbou (mathieu.carbou@gmail.com)
+ * @author Mathieu Carbou (mathieu.carbou@gmail.com),wu
  */
 public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessionManager.RedisSession> {
 
     final static Logger LOG = Log.getLogger("com.ovea.jetty.session");
-    private static final String[] FIELDS = {"id", "created", "accessed", "lastNode", "expiryTime", "lastSaved", "lastAccessed", "maxIdle", "cookieSet", "attributes"};
-
+    private static final String[] FIELDS = {"id", "created", "accessed", "lastNode", "expiryTime", "lastSaved", "lastAccessed", "maxIdle", "cookieSet"};
+    private static final String ATTRIBUTES= "attributes";
     private final JedisExecutor jedisExecutor;
     private final Serializer serializer;
 
@@ -165,7 +166,7 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
         Map<String, String> data = new HashMap<String, String>();
         for (int i = 0; i < FIELDS.length; i++)
             data.put(FIELDS[i], redisData.get(i));
-        String attrs = data.get("attributes");
+        String attrs = data.get(ATTRIBUTES);
         //noinspection unchecked
         return new RedisSession(data, attrs == null ? new HashMap<String, Object>() : serializer.deserialize(attrs, Map.class));
     }
@@ -173,10 +174,11 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
     @Override
     protected void storeSession(final RedisSession session) {
         if (!session.redisMap.isEmpty()) {
-            final Map<String, String> toStore = session.redisMap.containsKey("attributes") ?
-                session.redisMap :
+            final Map<String, String> toStore = 
+//            		session.redisMap.containsKey("attributes") ?session.redisMap :
                 new TreeMap<String, String>(session.redisMap);
-            if (toStore.containsKey("attributes"))
+//            if (toStore.containsKey("attributes"))
+            if(session.getAttributes()>0)
                 toStore.put("attributes", serializer.serialize(session.getSessionAttributes()));
             LOG.debug("[RedisSessionManager] storeSession - Storing session id={}", session.getClusterId());
             jedisExecutor.execute(new JedisCallback<Object>() {
@@ -184,6 +186,16 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
                 public Object execute(Jedis jedis) {
                     session.lastSaved = System.currentTimeMillis();
                     toStore.put("lastSaved", "" + session.lastSaved);
+                    Transaction tx= jedis.multi();
+                    
+                    final String key = RedisSessionIdManager.REDIS_SESSION_KEY + session.getClusterId();
+                    tx.hmset(key, toStore);
+                    int ttl = session.getMaxInactiveInterval();
+                    if (ttl > 0) {
+                        tx.expire(key, ttl);
+                    }
+                    return tx.exec();
+                    /*
                     return jedis.multi(new TransactionBlock() {
                         @Override
                         public void execute() throws JedisException {
@@ -195,6 +207,8 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
                             }
                         }
                     });
+                    */
+                    
                 }
             });
             session.redisMap.clear();
@@ -220,7 +234,7 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
     final class RedisSession extends SessionManagerSkeleton.SessionSkeleton {
 
         private final Map<String, String> redisMap = new TreeMap<String, String>();
-
+        private Map<String, Object> attributes=new TreeMap<String, Object>();
         private long expiryTime;
         private long lastSaved;
         private String lastNode;
@@ -247,7 +261,7 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
             redisMap.put("expiryTime", "" + expiryTime);
             redisMap.put("maxIdle", "" + ttl);
             redisMap.put("cookieSet", "" + getCookieSetTime());
-            redisMap.put("attributes", "");
+//            redisMap.put("attributes", "");
         }
 
         RedisSession(Map<String, String> redisData, Map<String, Object> attributes) {
@@ -257,10 +271,10 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
             lastSaved = parseLong(redisData.get("lastSaved"));
             super.setMaxInactiveInterval(parseInt(redisData.get("maxIdle")));
             setCookieSetTime(parseLong(redisData.get("cookieSet")));
-            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-//                super.doPutOrRemove(entry.getKey(), entry.getValue());
-                this.doPutOrRemove(entry.getKey(), entry.getValue());
-            }
+//            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+//                this.doPutOrRemove(entry.getKey(), entry.getValue());
+//            }
+            this.attributes=attributes;
             super.access(parseLong(redisData.get("lastAccessed")));
         }
 
@@ -346,50 +360,46 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
 
 		@Override
 		public Map<String, Object> getAttributeMap() {
-			// TODO 自动生成的方法存根
-			return null;
+			return this.attributes;
 		}
 
 		@Override
 		public int getAttributes() {
-			// TODO 自动生成的方法存根
-			return 0;
+			return this.attributes.size();
 		}
 
 		@Override
 		public Set<String> getNames() {
-			// TODO 自动生成的方法存根
-			return null;
+			return this.attributes.keySet();
 		}
 
 		@Override
 		public void clearAttributes() {
-			// TODO 自动生成的方法存根
-			
+			this.attributes.clear();
 		}
 
 		@Override
 		public Object doPutOrRemove(String name, Object value) {
-			// TODO 自动生成的方法存根
-			return null;
+			  return value==null?this.attributes.remove(name):this.attributes.put(name,value);
 		}
 
 		@Override
 		public Object doGet(String name) {
-			// TODO 自动生成的方法存根
-			return null;
+			return this.attributes.get(name);
 		}
 
 		@Override
 		public Enumeration<String> doGetAttributeNames() {
-//			 List<String> names=_attributes==null?Collections.EMPTY_LIST:new ArrayList<String>(_attributes.keySet());
-//			 return Collections.enumeration("");
-			return null;
+			if (this.attributes==null){
+				return Collections.emptyEnumeration();
+			}else{
+				return Collections.enumeration(this.attributes.keySet());
+			}
 		}
     }
 
 	@Override
 	protected void shutdownSessions() throws Exception {
-		// TODO 自动生成的方法存根
+		this.doStop();
 	}
 }
