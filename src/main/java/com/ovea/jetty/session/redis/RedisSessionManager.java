@@ -42,8 +42,8 @@ import static java.lang.Long.parseLong;
 public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessionManager.RedisSession> {
 
     final static Logger LOG = Log.getLogger("com.ovea.jetty.session");
-    private static final String[] FIELDS = {"id", "created", "accessed", "lastNode", "expiryTime", "lastSaved", "lastAccessed", "maxIdle", "cookieSet"};
-    private static final String ATTRIBUTES= "attributes";
+    private static final String[] FIELDS = {"id", "created", "accessed", "lastNode", "expiryTime", "lastSaved", "lastAccessed", "maxIdle", "cookieSet", "attributes"};
+    private static final String ATTRIBUTES= FIELDS[FIELDS.length-1];
     private final JedisExecutor jedisExecutor;
     private final Serializer serializer;
 
@@ -166,7 +166,7 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
         Map<String, String> data = new HashMap<String, String>();
         for (int i = 0; i < FIELDS.length; i++)
             data.put(FIELDS[i], redisData.get(i));
-        String attrs = data.get(ATTRIBUTES);
+        String attrs = data.remove(ATTRIBUTES);
         //noinspection unchecked
         return new RedisSession(data, attrs == null ? new HashMap<String, Object>() : serializer.deserialize(attrs, Map.class));
     }
@@ -179,7 +179,7 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
                 new TreeMap<String, String>(session.redisMap);
 //            if (toStore.containsKey("attributes"))
             if(session.getAttributes()>0)
-                toStore.put("attributes", serializer.serialize(session.getSessionAttributes()));
+                toStore.put(ATTRIBUTES, serializer.serialize(session.getAttributeMap()));
             LOG.debug("[RedisSessionManager] storeSession - Storing session id={}", session.getClusterId());
             jedisExecutor.execute(new JedisCallback<Object>() {
                 @Override
@@ -211,7 +211,8 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
                     
                 }
             });
-            session.redisMap.clear();
+//            session.redisMap.clear();
+//            session.clearAttributes();
         }
     }
 
@@ -286,15 +287,15 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
         @Override
         public void setAttribute(String name, Object value) {
             super.setAttribute(name, value);
-            redisMap.put("attributes", "");
+//            redisMap.put("attributes", "");
         }
 
         @Override
         public void removeAttribute(String name) {
             super.removeAttribute(name);
-            redisMap.put("attributes", "");
+//            redisMap.put("attributes", "");
         }
-
+/*
         public final Map<String, Object> getSessionAttributes() {
             Map<String, Object> attrs = new LinkedHashMap<String, Object>();
             for (String key : this.getNames()) {
@@ -302,7 +303,7 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
             }
             return attrs;
         }
-
+*/
         @Override
         protected boolean access(long time) {
             boolean ret = super.access(time);
@@ -347,6 +348,7 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
                     LOG.warn("[RedisSessionManager] complete - Problem persisting changed session data id=" + getId(), e);
                 } finally {
                     redisMap.clear();
+                    clearAttributes();
                 }
             }
         }
@@ -390,7 +392,7 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
 
 		@Override
 		public Enumeration<String> doGetAttributeNames() {
-			if (this.attributes==null){
+			if (this.getAttributes()>0){
 				return Collections.emptyEnumeration();
 			}else{
 				return Collections.enumeration(this.attributes.keySet());
