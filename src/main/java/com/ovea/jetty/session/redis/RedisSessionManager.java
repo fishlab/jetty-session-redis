@@ -18,22 +18,26 @@ package com.ovea.jetty.session.redis;
 import com.ovea.jetty.session.Serializer;
 import com.ovea.jetty.session.SessionManagerSkeleton;
 import com.ovea.jetty.session.serializer.XStreamSerializer;
+
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 import redis.clients.jedis.TransactionBlock;
 import redis.clients.jedis.exceptions.JedisException;
 
 import javax.naming.InitialContext;
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.*;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
 
 /**
- * @author Mathieu Carbou (mathieu.carbou@gmail.com)
+ * @author Mathieu Carbou (mathieu.carbou@gmail.com),wu
  */
 public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessionManager.RedisSession> {
 
@@ -181,7 +185,16 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
                 public Object execute(Jedis jedis) {
                     session.lastSaved = System.currentTimeMillis();
                     toStore.put("lastSaved", "" + session.lastSaved);
-                    return jedis.multi(new TransactionBlock() {
+                    Transaction tx= jedis.multi();
+                    
+                    final String key = RedisSessionIdManager.REDIS_SESSION_KEY + session.getClusterId();
+                    tx.hmset(key, toStore);
+                    int ttl = session.getMaxInactiveInterval();
+                    if (ttl > 0) {
+                        tx.expire(key, ttl);
+                    }
+                    return tx.exec();
+                    /*return jedis.multi(new TransactionBlock() {
                         @Override
                         public void execute() throws JedisException {
                             final String key = RedisSessionIdManager.REDIS_SESSION_KEY + session.getClusterId();
@@ -192,6 +205,7 @@ public final class RedisSessionManager extends SessionManagerSkeleton<RedisSessi
                             }
                         }
                     });
+                    */
                 }
             });
             session.redisMap.clear();

@@ -20,7 +20,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
 /**
- * @author Mathieu Carbou (mathieu.carbou@gmail.com)
+ * @author Mathieu Carbou (mathieu.carbou@gmail.com),wu
  */
 class PooledJedisExecutor implements JedisExecutor {
     private final JedisPool jedisPool;
@@ -35,10 +35,11 @@ class PooledJedisExecutor implements JedisExecutor {
         try {
             return cb.execute(jedis);
         } catch (JedisException e) {
-            jedisPool.returnBrokenResource(jedis);
+//            jedisPool.returnBrokenResource(jedis);
             throw e;
         } finally {
-            jedisPool.returnResource(jedis);
+//            jedisPool.returnResource(jedis);
+        	jedis.close();
         }
     }
 

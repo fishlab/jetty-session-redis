@@ -59,39 +59,49 @@
         </New>
     </Set>
 
+
+	<New id="redisPool" class="redis.clients.jedis.JedisPool">
+		<Arg>
+			<New class="org.apache.commons.pool2.impl.GenericObjectPoolConfig">
+				<Set type="int" name="minIdle">5</Set>
+				<Set type="int" name="maxTotal">15</Set>
+				<Set type="boolean" name="testOnBorrow">true</Set>
+			</New>
+		</Arg>
+		<Arg>127.0.0.1</Arg>
+		<Arg type="int">6379</Arg>
+	</New>
+
     <!--
         Configure session id management
     -->
-    <Set name="sessionIdManager">
+      <Set name="sessionIdManager">
         <New class="com.ovea.jetty.session.redis.RedisSessionIdManager">
             <Arg>
                 <Ref id="Server"/>
             </Arg>
-            <Arg>session/redis</Arg>
-            <Set name="scavengerInterval">20000</Set>
+            <Arg> <Ref id="redisPool"/></Arg>
+<!--             <Arg>session/redis</Arg> -->
+            <!-- time interval to check for expired sessions in redis cache, in milliseconds. Defaults to 1 min -->
+            <Set name="scavengerInterval">30000</Set>
+            <!-- cluster node name -->
             <Set name="workerName">
                 <SystemProperty name="jetty.node" default="node2"/>
             </Set>
         </New>
     </Set>
 
+
+
     <!--
         Provides a Redis Pool for session management on server and each webapp
     -->
+	<!--use jndi -->
+    
     <New class="org.eclipse.jetty.plus.jndi.Resource">
         <Arg>session/redis</Arg>
         <Arg>
-            <New class="redis.clients.jedis.JedisPool">
-                <Arg>
-                    <New class="org.apache.commons.pool.impl.GenericObjectPool$Config">
-                        <Set type="int" name="minIdle">3</Set>
-                        <Set type="int" name="maxActive">5</Set>
-                        <Set type="boolean" name="testOnBorrow">true</Set>
-                    </New>
-                </Arg>
-                <Arg>127.0.0.1</Arg>
-                <Arg type="int">6379</Arg>
-            </New>
+            <Ref id="redisPool"/>
         </Arg>
     </New>
 

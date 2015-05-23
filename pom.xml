@@ -9,7 +9,8 @@
     </parent>
 
     <artifactId>jetty-session-redis</artifactId>
-    <version>2.4.ga-SNAPSHOT</version>
+    <version>2.4-jetty8-jedis27</version>
+   
     <packaging>jar</packaging>
 
     <name>jetty-session-redis</name>
@@ -20,19 +21,32 @@
         <developerConnection>scm:git:git@github.com:Ovea/${project.name}.git</developerConnection>
         <url>http://github.com/Ovea/${project.name}</url>
     </scm>
+    
+    <properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jetty.version>8.1.17.v20150415</jetty.version>
+	</properties>
 
     <dependencies>
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.0.0</version>
-            <scope>provided</scope>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>redis.clients</groupId> -->
+<!--             <artifactId>jedis</artifactId> -->
+<!--             <version>2.0.0</version> -->
+<!--             <scope>provided</scope> -->
+<!--         </dependency> -->
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>2.7.2</version>
+			<scope>provided</scope>
+		</dependency>
+
 
         <dependency>
             <groupId>org.eclipse.jetty.aggregate</groupId>
             <artifactId>jetty-all</artifactId>
-            <version>8.1.2.v20120308</version>
+<!--             <version>8.1.2.v20120308</version> -->
+			<version>${jetty.version}</version>
             <scope>provided</scope>
         </dependency>
 
