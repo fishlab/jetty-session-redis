@@ -22,6 +22,19 @@
         <url>http://github.com/Ovea/${project.name}</url>
     </scm>
     
+    <distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<name>Nexus Releases Repository</name>
+			<url>http://www.idacf.com/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<name>Nexus Snapshots Repository</name>
+			<url>http://www.idacf.com/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+    
     <properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jetty.version>8.1.17.v20150415</jetty.version>
