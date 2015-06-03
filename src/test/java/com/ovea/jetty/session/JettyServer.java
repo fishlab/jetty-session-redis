@@ -31,7 +31,7 @@ public final class JettyServer {
                 .webappRoot(webappRoot)
                 .set("jetty.conf", webappRoot + "/WEB-INF/jetty-server.xml")
                 .set("jetty.env", webappRoot + "/WEB-INF/jetty-web.xml")
-                .buildContainer(TestatooContainer.JETTY);
+                .buildContainer(TestatooContainer.JETTY9);
     }
 
     public void start() throws Exception {

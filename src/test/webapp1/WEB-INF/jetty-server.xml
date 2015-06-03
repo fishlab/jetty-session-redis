@@ -82,16 +82,16 @@
         <Arg>session/redis</Arg>
         <Arg>
             <New class="redis.clients.jedis.JedisPool">
-                <Arg>
-                    <New class="org.apache.commons.pool.impl.GenericObjectPool$Config">
-                        <Set type="int" name="minIdle">3</Set>
-                        <Set type="int" name="maxActive">5</Set>
-                        <Set type="boolean" name="testOnBorrow">true</Set>
-                    </New>
-                </Arg>
-                <Arg>127.0.0.1</Arg>
-                <Arg type="int">6379</Arg>
-            </New>
+				<Arg>
+					<New class="org.apache.commons.pool2.impl.GenericObjectPoolConfig">
+						<Set type="int" name="minIdle">5</Set>
+						<Set type="int" name="maxTotal">15</Set>
+						<Set type="boolean" name="testOnBorrow">true</Set>
+					</New>
+				</Arg>
+				<Arg>127.0.0.1</Arg>
+				<Arg type="int">6379</Arg>
+			</New>
         </Arg>
     </New>
 

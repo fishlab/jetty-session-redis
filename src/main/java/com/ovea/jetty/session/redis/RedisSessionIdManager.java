@@ -18,6 +18,7 @@ package com.ovea.jetty.session.redis;
 import com.ovea.jetty.session.SessionIdManagerSkeleton;
 
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.session.AbstractSession;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 
@@ -29,9 +30,13 @@ import redis.clients.jedis.exceptions.JedisException;
 
 import javax.naming.InitialContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Mathieu Carbou (mathieu.carbou@gmail.com) ,wu
@@ -136,8 +141,38 @@ public final class RedisSessionIdManager extends SessionIdManagerSkeleton {
 	@Override
 	public void renewSessionId(String oldClusterId, String oldNodeId,
 			HttpServletRequest request) {
-//		this.newSessionId(seedTerm)
-		// TODO 自动生成的方法存根
+		//TODO:
+		/*
+        //generate a new id
+        String newClusterId = newSessionId(request.hashCode());
+        
+
+        synchronized (this)
+        {
+            Set<WeakReference<HttpSession>> sessions = _sessions.remove(oldClusterId); //get the list of sessions with same id from other contexts
+            if (sessions!=null)
+            {
+                for (Iterator<WeakReference<HttpSession>> iter = sessions.iterator(); iter.hasNext();)
+                {
+                    WeakReference<HttpSession> ref = iter.next();
+                    HttpSession s = ref.get();
+                    if (s == null)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        if (s instanceof AbstractSession)
+                        {
+                            AbstractSession abstractSession = (AbstractSession)s;
+                            abstractSession.getSessionManager().renewSessionId(oldClusterId, oldNodeId, newClusterId, getNodeId(newClusterId, request));
+                        }
+                    }
+                }
+                _sessions.put(newClusterId, sessions);
+            }
+        }
+        */
 		
 	}
 
